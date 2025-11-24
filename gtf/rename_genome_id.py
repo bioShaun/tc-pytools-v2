@@ -9,7 +9,7 @@ Supports two modes:
 Usage:
     # NGDC genome with OriSeqID
     tc-rename-genome-id ngdc -f genome.fasta -o output.fasta [-g input.gff -og output.gff]
-    
+
     # Custom ID mapping file
     tc-rename-genome-id custom -f genome.fasta -o output.fasta -m id_map.txt [-g input.gff -og output.gff]
 """
@@ -182,14 +182,16 @@ app = typer.Typer(help="Rename chromosome IDs in genome FASTA and GFF files")
 def ngdc(
     fasta: Annotated[Path, typer.Option("-f", "--fasta", help="Input FASTA file")],
     output: Annotated[Path, typer.Option("-o", "--output", help="Output FASTA file")],
-    gff: Annotated[Optional[Path], typer.Option("-g", "--gff", help="Input GFF file (optional)")] = None,
+    gff: Annotated[
+        Optional[Path], typer.Option("-g", "--gff", help="Input GFF file (optional)")
+    ] = None,
     output_gff: Annotated[
         Optional[Path], typer.Option("-og", "--output-gff", help="Output GFF file (optional)")
     ] = None,
 ):
     """
     Rename chromosome IDs using NGDC OriSeqID from FASTA headers.
-    
+
     This command extracts OriSeqID values from NGDC FASTA headers and uses them
     to rename chromosome IDs in both FASTA and GFF files.
     """
@@ -225,15 +227,19 @@ def ngdc(
 def custom(
     fasta: Annotated[Path, typer.Option("-f", "--fasta", help="Input FASTA file")],
     output: Annotated[Path, typer.Option("-o", "--output", help="Output FASTA file")],
-    id_map: Annotated[Path, typer.Option("-m", "--map", help="ID mapping file (tab-separated: old_id\\tnew_id)")],
-    gff: Annotated[Optional[Path], typer.Option("-g", "--gff", help="Input GFF file (optional)")] = None,
+    id_map: Annotated[
+        Path, typer.Option("-m", "--map", help="ID mapping file (tab-separated: old_id\\tnew_id)")
+    ],
+    gff: Annotated[
+        Optional[Path], typer.Option("-g", "--gff", help="Input GFF file (optional)")
+    ] = None,
     output_gff: Annotated[
         Optional[Path], typer.Option("-og", "--output-gff", help="Output GFF file (optional)")
     ] = None,
 ):
     """
     Rename chromosome IDs using a custom ID mapping file.
-    
+
     The mapping file should be tab-separated with format: old_id\\tnew_id
     Lines starting with # are treated as comments and empty lines are ignored.
     """

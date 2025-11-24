@@ -31,12 +31,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/tc-pytools"
-Documentation = "https://github.com/yourusername/tc-pytools/blob/main/README.md"
-Repository = "https://github.com/yourusername/tc-pytools"
-Issues = "https://github.com/yourusername/tc-pytools/issues"
-Changelog = "https://github.com/yourusername/tc-pytools/blob/main/CHANGELOG.md"
-
+Homepage = "https://github.com/bioShaun/tc-pytools-v2"
+Documentation = "https://github.com/bioShaun/tc-pytools-v2/blob/main/README.md"
+Repository = "https://github.com/bioShaun/tc-pytools-v2"
+Issues = "https://github.com/bioShaun/tc-pytools-v2/issues"
+Changelog = "https://github.com/bioShaun/tc-pytools-v2/blob/main/CHANGELOG.md"
 [project.scripts]
 tc-rename-genome-id = "gtf.rename_genome_id:main"
 
@@ -55,6 +54,7 @@ dev-dependencies = [
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
 ]
+index-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 
 [tool.pytest.ini_options]
 testpaths = ["gtf/tests"]

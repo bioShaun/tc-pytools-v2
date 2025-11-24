@@ -1,0 +1,3 @@
+"""TC PyTools - Toolkit for processing genomic data files."""
+
+__version__ = "1.1.0"

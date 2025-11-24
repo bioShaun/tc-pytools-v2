@@ -35,7 +35,7 @@ Issues = "https://github.com/yourusername/tc-pytools/issues"
 Changelog = "https://github.com/yourusername/tc-pytools/blob/main/CHANGELOG.md"
 
 [project.scripts]
-rename-ngdc-genome-id = "gtf.rename_ngdc_genome_id:main"
+tc-rename-ngdc-genome-id = "gtf.rename_ngdc_genome_id:main"
 
 [build-system]
 requires = ["hatchling"]

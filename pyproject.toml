@@ -25,7 +25,10 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
-dependencies = []
+dependencies = [
+    "typer>=0.9.0",
+    "typing-extensions>=4.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/yourusername/tc-pytools"
@@ -35,7 +38,7 @@ Issues = "https://github.com/yourusername/tc-pytools/issues"
 Changelog = "https://github.com/yourusername/tc-pytools/blob/main/CHANGELOG.md"
 
 [project.scripts]
-tc-rename-ngdc-genome-id = "gtf.rename_ngdc_genome_id:main"
+tc-rename-genome-id = "gtf.rename_genome_id:main"
 
 [build-system]
 requires = ["hatchling"]

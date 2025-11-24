@@ -2,8 +2,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from gtf.rename_ngdc_genome_id import (
+from gtf.rename_genome_id import (
     build_id_mapping,
+    load_id_mapping,
     parse_fasta_header,
     rename_fasta,
     rename_gff,
@@ -188,6 +189,130 @@ Chr1A\tRefSeq\tgene\t100\t200\t.\t+\t.\tID=gene1
 
 # This is a comment
 Chr1B\tRefSeq\tgene\t300\t400\t.\t-\t.\tID=gene2
+"""
+            self.assertEqual(output_content, expected)
+
+
+class TestLoadIdMapping(unittest.TestCase):
+    """Test loading ID mapping from file."""
+
+    def test_load_mapping_basic(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            map_content = """GWHGECT00000001.1\tChr1A
+GWHGECT00000002.1\tChr1B
+GWHGECT00000003.1\tChr2A
+"""
+            map_file = Path(tmp_dir) / "id_map.txt"
+            map_file.write_text(map_content)
+
+            id_map = load_id_mapping(map_file)
+
+            self.assertEqual(len(id_map), 3)
+            self.assertEqual(id_map["GWHGECT00000001.1"], "Chr1A")
+            self.assertEqual(id_map["GWHGECT00000002.1"], "Chr1B")
+            self.assertEqual(id_map["GWHGECT00000003.1"], "Chr2A")
+
+    def test_load_mapping_with_comments(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            map_content = """# This is a comment
+GWHGECT00000001.1\tChr1A
+# Another comment
+GWHGECT00000002.1\tChr1B
+"""
+            map_file = Path(tmp_dir) / "id_map.txt"
+            map_file.write_text(map_content)
+
+            id_map = load_id_mapping(map_file)
+
+            self.assertEqual(len(id_map), 2)
+            self.assertEqual(id_map["GWHGECT00000001.1"], "Chr1A")
+            self.assertEqual(id_map["GWHGECT00000002.1"], "Chr1B")
+
+    def test_load_mapping_with_empty_lines(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            map_content = """GWHGECT00000001.1\tChr1A
+
+GWHGECT00000002.1\tChr1B
+
+"""
+            map_file = Path(tmp_dir) / "id_map.txt"
+            map_file.write_text(map_content)
+
+            id_map = load_id_mapping(map_file)
+
+            self.assertEqual(len(id_map), 2)
+            self.assertEqual(id_map["GWHGECT00000001.1"], "Chr1A")
+            self.assertEqual(id_map["GWHGECT00000002.1"], "Chr1B")
+
+    def test_load_mapping_simple_ids(self):
+        """Test loading mapping for non-NGDC genomes with simple IDs."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            map_content = """scaffold_1\tChr1
+scaffold_2\tChr2
+scaffold_3\tChr3
+"""
+            map_file = Path(tmp_dir) / "id_map.txt"
+            map_file.write_text(map_content)
+
+            id_map = load_id_mapping(map_file)
+
+            self.assertEqual(len(id_map), 3)
+            self.assertEqual(id_map["scaffold_1"], "Chr1")
+            self.assertEqual(id_map["scaffold_2"], "Chr2")
+            self.assertEqual(id_map["scaffold_3"], "Chr3")
+
+
+class TestRenameFastaWithMapping(unittest.TestCase):
+    """Test renaming FASTA with custom ID mapping (non-NGDC genomes)."""
+
+    def test_rename_simple_fasta(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            input_content = """>scaffold_1
+ATCGATCGATCG
+GCTAGCTAGCTA
+>scaffold_2
+TTAATTAATTAA
+CCGGCCGGCCGG
+"""
+            input_file = Path(tmp_dir) / "input.fasta"
+            output_file = Path(tmp_dir) / "output.fasta"
+            input_file.write_text(input_content)
+
+            id_map = {"scaffold_1": "Chr1", "scaffold_2": "Chr2"}
+
+            rename_fasta(input_file, output_file, id_map)
+
+            output_content = output_file.read_text()
+            expected = """>Chr1
+ATCGATCGATCG
+GCTAGCTAGCTA
+>Chr2
+TTAATTAATTAA
+CCGGCCGGCCGG
+"""
+            self.assertEqual(output_content, expected)
+
+    def test_rename_fasta_with_descriptions(self):
+        """Test that FASTA headers with descriptions are handled correctly."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            input_content = """>scaffold_1 length=1000 GC=45.2
+ATCGATCGATCG
+>scaffold_2 length=2000 GC=50.1
+GCTAGCTAGCTA
+"""
+            input_file = Path(tmp_dir) / "input.fasta"
+            output_file = Path(tmp_dir) / "output.fasta"
+            input_file.write_text(input_content)
+
+            id_map = {"scaffold_1": "Chr1", "scaffold_2": "Chr2"}
+
+            rename_fasta(input_file, output_file, id_map)
+
+            output_content = output_file.read_text()
+            expected = """>Chr1
+ATCGATCGATCG
+>Chr2
+GCTAGCTAGCTA
 """
             self.assertEqual(output_content, expected)
 

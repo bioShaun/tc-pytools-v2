@@ -64,16 +64,11 @@ uv pip install dist/tc_pytools-1.1.0-py3-none-any.whl
 
 ## 工具列表
 
-### 1. rename-ngdc-genome-id
+| 工具名称 | 功能描述 | 主要用途 | 文档链接 |
+|---------|---------|---------|---------|
+| `tc-rename-genome-id` | 重命名基因组染色体 ID | 支持 NGDC 基因组（自动提取 OriSeqID）和自定义映射两种模式，可同时处理 FASTA 和 GFF 文件 | [详细文档](gtf/docs/rename-genome-id.md) |
 
-重命名 NGDC 基因组 FASTA 和 GFF 文件中的染色体 ID。
-
-**快速使用**：
-```bash
-uv run rename-ngdc-genome-id -f genome.fasta -o output.fasta
-```
-
-**详细文档**: [gtf/docs/README.md](gtf/docs/README.md)
+> 💡 每个工具都有详细的使用文档，请点击文档链接查看具体用法和示例。
 
 ## 开发
 

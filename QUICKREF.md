@@ -1,13 +1,45 @@
 # TC PyTools - 快速参考指南
 
-## 项目管理
+## 安装工具包
 
-### 使用 uv 安装依赖
+### 首次安装
+
 ```bash
-# 安装所有依赖（包括开发依赖）
+# 1. 安装 uv（如果还没有）
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 2. 进入项目目录
+cd tc-pytools-v1.1
+
+# 3. 开发模式安装（推荐）
 uv sync
 
-# 只安装生产依赖
+# 4. 验证安装
+uv run rename-ngdc-genome-id --help
+```
+
+### 安装到系统（可选）
+
+```bash
+# 方式 1: 使用 uv pip（推荐）
+uv pip install -e .
+
+# 方式 2: 构建后安装
+uv build
+uv pip install dist/tc_pytools-1.1.0-py3-none-any.whl
+
+# 安装后可直接使用
+rename-ngdc-genome-id --help
+```
+
+## 项目管理
+
+### 使用 uv 管理依赖
+```bash
+# 同步所有依赖（包括开发依赖）
+uv sync
+
+# 只同步生产依赖
 uv sync --no-dev
 
 # 添加新的依赖
@@ -15,6 +47,10 @@ uv add <package-name>
 
 # 添加开发依赖
 uv add --dev <package-name>
+
+# 更新依赖
+uv lock --upgrade
+uv sync
 ```
 
 ### 使用 Make 命令

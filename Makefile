@@ -54,5 +54,39 @@ clean:  ## Clean build artifacts and cache
 build:  ## Build package
 	uv build
 
+publish-test:  ## Publish to Test PyPI
+	@echo "Publishing to Test PyPI..."
+	uv publish --publish-url https://test.pypi.org/legacy/
+
+publish:  ## Publish to PyPI
+	@echo "Publishing to PyPI..."
+	@echo "WARNING: This will publish to the official PyPI!"
+	@read -p "Are you sure? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		uv publish; \
+	else \
+		echo "Cancelled."; \
+	fi
+
+publish-check:  ## Check package before publishing
+	@echo "Checking package..."
+	uv pip install --quiet twine 2>/dev/null || true
+	uv run twine check dist/*
+
+version:  ## Show current version
+	@echo "Current version:"
+	@grep '^version = ' pyproject.toml
+	@grep '^__version__ = ' gtf/__init__.py
+
+release:  ## Full release process (build + check + publish to Test PyPI)
+	@echo "Starting release process..."
+	make clean
+	make build
+	make publish-check
+	make publish-test
+	@echo "Released to Test PyPI. Test it with:"
+	@echo "  pip install --index-url https://test.pypi.org/simple/ tc-pytools"
+
 run:  ## Run the main script (example usage)
 	@echo "Usage: uv run rename-ngdc-genome-id -f <fasta> -o <output> [-g <gff> -og <output_gff>]"

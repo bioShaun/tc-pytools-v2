@@ -8,12 +8,58 @@
 
 ## 安装
 
+### 前提条件
+
+需要先安装 [uv](https://github.com/astral-sh/uv)（快速的 Python 包管理器）：
+
 ```bash
-# 克隆或进入项目目录
+# Linux/macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 或使用 pip
+pip install uv
+```
+
+### 安装工具包
+
+#### 方式 1: 开发模式安装（推荐用于开发）
+
+```bash
+# 进入项目目录
 cd tc-pytools-v1.1
 
-# 安装依赖
+# 同步依赖并安装包（可编辑模式）
 uv sync
+
+# 此时可以直接使用 uv run 运行命令
+uv run rename-ngdc-genome-id --help
+```
+
+#### 方式 2: 安装到用户环境（推荐用于日常使用）
+
+```bash
+# 进入项目目录
+cd tc-pytools-v1.1
+
+# 使用 uv pip 安装到当前 Python 环境
+uv pip install -e .
+
+# 或安装到系统（需要激活相应的虚拟环境）
+# 激活虚拟环境后
+pip install -e .
+
+# 安装后可以直接使用命令
+rename-ngdc-genome-id --help
+```
+
+#### 方式 3: 从源码构建并安装
+
+```bash
+# 构建包
+uv build
+
+# 安装构建的包
+uv pip install dist/tc_pytools-1.1.0-py3-none-any.whl
 ```
 
 ## 工具列表
@@ -93,7 +139,10 @@ tc-pytools-v1.1/
 
 ## 文档
 
+- **[INSTALL.md](INSTALL.md)** - 详细安装指南（推荐首先阅读）
+- **[PUBLISH.md](PUBLISH.md)** - PyPI 发布指南
 - [QUICKREF.md](QUICKREF.md) - 快速参考指南（中文）
+- [CHANGELOG.md](CHANGELOG.md) - 版本更新日志
 - [SETUP_COMPLETE.md](SETUP_COMPLETE.md) - 项目配置说明
 - 各工具的详细文档位于对应的 `docs/` 目录下
 

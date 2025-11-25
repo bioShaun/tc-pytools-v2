@@ -27,6 +27,8 @@ dependencies = [
     "typer>=0.9.0",
     "typing-extensions>=4.0.0",
     "requests>=2.0.0",
+    "loguru>=0.7.0",
+    "pandas>=1.5.0",
 ]
 
 [project.urls]
@@ -37,8 +39,7 @@ Issues = "https://github.com/bioShaun/tc-pytools-v2/issues"
 Changelog = "https://github.com/bioShaun/tc-pytools-v2/blob/main/CHANGELOG.md"
 [project.scripts]
 tc-rename-genome-id = "genome.rename_genome_id:main"
-# Backward compatibility alias (old name pointing to new module)
-tc-rename-ngdc-genome-id = "genome.rename_genome_id:main"
+tc-liftover-flank-and-site = "liftover.liftover_flank_and_site:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -59,7 +60,7 @@ dev-dependencies = [
 index-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 
 [tool.pytest.ini_options]
-testpaths = ["genome/tests"]
+testpaths = ["genome/tests", "liftover/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

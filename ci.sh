@@ -94,7 +94,7 @@ echo
 
 # Step 7: Run tests with coverage
 print_step "Running tests with coverage..."
-if uv run pytest --cov=gtf --cov-report=term-missing --cov-report=html; then
+if uv run pytest --cov=genome --cov-report=term-missing --cov-report=html; then
     print_success "Coverage report generated"
     echo "    HTML report: htmlcov/index.html"
 else

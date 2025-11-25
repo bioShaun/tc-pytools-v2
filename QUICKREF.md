@@ -129,13 +129,13 @@ uv run ruff format --check .
 uv run ruff check .
 
 # 类型检查
-uv run mypy gtf --ignore-missing-imports
+uv run mypy genome --ignore-missing-imports
 
 # 运行测试
 uv run pytest -v
 
 # 生成覆盖率报告
-uv run pytest --cov=gtf --cov-report=html
+uv run pytest --cov=genome --cov-report=html
 ```
 
 ## 运行项目
@@ -190,13 +190,13 @@ make type-check
 uv run pytest
 
 # 运行特定测试文件
-uv run pytest gtf/tests/test_rename_ngdc_genome_id.py
+uv run pytest genome/tests/test_rename_ngdc_genome_id.py
 
 # 运行特定测试类
-uv run pytest gtf/tests/test_rename_ngdc_genome_id.py::TestParseFastaHeader
+uv run pytest genome/tests/test_rename_ngdc_genome_id.py::TestParseFastaHeader
 
 # 运行特定测试方法
-uv run pytest gtf/tests/test_rename_ngdc_genome_id.py::TestParseFastaHeader::test_standard_ngdc_format
+uv run pytest genome/tests/test_rename_ngdc_genome_id.py::TestParseFastaHeader::test_standard_ngdc_format
 
 # 详细输出
 uv run pytest -v
@@ -205,7 +205,7 @@ uv run pytest -v
 uv run pytest -s
 
 # 生成 HTML 覆盖率报告
-uv run pytest --cov=gtf --cov-report=html
+uv run pytest --cov=genome --cov-report=html
 # 报告位置: htmlcov/index.html
 ```
 

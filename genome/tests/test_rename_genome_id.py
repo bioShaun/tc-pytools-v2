@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from gtf.rename_genome_id import (
+from genome.rename_genome_id import (
     build_id_mapping,
     load_id_mapping,
     parse_fasta_header,

@@ -678,3 +678,8 @@ def flank(
 
 if __name__ == "__main__":
     app()
+
+
+def main() -> None:
+    """Entry point for console script."""
+    app()

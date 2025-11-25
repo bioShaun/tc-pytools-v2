@@ -74,7 +74,7 @@ echo
 
 # Step 5: Run type checker
 print_step "Running type checker (mypy)..."
-if uv run mypy genome --ignore-missing-imports; then
+if uv run mypy genome liftover --ignore-missing-imports; then
     print_success "Type checking passed"
 else
     print_error "Type checking failed"
@@ -94,7 +94,7 @@ echo
 
 # Step 7: Run tests with coverage
 print_step "Running tests with coverage..."
-if uv run pytest --cov=genome --cov-report=term-missing --cov-report=html; then
+if uv run pytest --cov=genome --cov=liftover --cov-report=term-missing --cov-report=html; then
     print_success "Coverage report generated"
     echo "    HTML report: htmlcov/index.html"
 else

@@ -167,7 +167,9 @@ def download_assembly_report(genome_filename: str, output_path: Optional[Path] =
     # Construct full URL
     base_url = "https://ftp.ncbi.nlm.nih.gov/genomes/all"
     report_filename = f"{full_prefix}_assembly_report.txt"
-    download_url = f"{base_url}/{assembly_prefix}/{dir1}/{dir2}/{dir3}/{full_prefix}/{report_filename}"
+    download_url = (
+        f"{base_url}/{assembly_prefix}/{dir1}/{dir2}/{dir3}/{full_prefix}/{report_filename}"
+    )
 
     typer.echo(f"Assembly: {assembly_prefix}_{assembly_number} ({assembly_name_suffix})", err=True)
     typer.echo(f"Downloading from: {download_url}", err=True)
@@ -197,14 +199,12 @@ def download_assembly_report(genome_filename: str, output_path: Optional[Path] =
         )
         typer.echo(f"  URL: {download_url}", err=True)
         typer.echo(
-            f"  Tip: Verify the filename format. Expected: GCF_XXXXXX.X_AssemblyName", err=True
+            "  Tip: Verify the filename format. Expected: GCF_XXXXXX.X_AssemblyName", err=True
         )
         raise
 
 
-def parse_assembly_report(
-    report_file: Path, old_id_col: int = 7, new_id_col: int = 1
-) -> dict:
+def parse_assembly_report(report_file: Path, old_id_col: int = 7, new_id_col: int = 1) -> dict:
     """
     Parse NCBI assembly_report.txt to extract ID mapping.
 
@@ -370,11 +370,22 @@ def ngdc(
 
 @app.command()
 def ncbi(
-    fasta: Annotated[Path, typer.Option("-f", "--fasta", help="Input FASTA file (e.g., GCF_016699485.2_bGalGal1.mat.broiler.GRCg7b_genomic.fna)")],
+    fasta: Annotated[
+        Path,
+        typer.Option(
+            "-f",
+            "--fasta",
+            help="Input FASTA file (e.g., GCF_016699485.2_bGalGal1.mat.broiler.GRCg7b_genomic.fna)",
+        ),
+    ],
     output: Annotated[Path, typer.Option("-o", "--output", help="Output FASTA file")],
     report: Annotated[
         Optional[Path],
-        typer.Option("-r", "--report", help="Local assembly_report.txt file (optional, will auto-download from FASTA filename if not provided)"),
+        typer.Option(
+            "-r",
+            "--report",
+            help="Local assembly_report.txt file (optional, will auto-download from FASTA filename if not provided)",
+        ),
     ] = None,
     old_col: Annotated[
         int,
@@ -403,9 +414,9 @@ def ncbi(
 
     The assembly report will be auto-downloaded based on the FASTA filename.
     FASTA filename should follow NCBI format: GCF_XXXXXX.X_AssemblyName_genomic.fna[.gz]
-    
+
     Example: GCF_016699485.2_bGalGal1.mat.broiler.GRCg7b_genomic.fna
-    
+
     Alternatively, provide --report to use a local assembly_report.txt file.
 
     Column indices (1-indexed):
@@ -429,7 +440,7 @@ def ncbi(
         # Extract genome name from FASTA filename and download assembly report
         genome_filename = fasta.name
         typer.echo(f"Extracting genome name from: {genome_filename}", err=True)
-        
+
         try:
             report_file = download_assembly_report(genome_filename)
         except Exception as e:
@@ -442,12 +453,10 @@ def ncbi(
                 "     Or provide a local assembly report with --report",
                 err=True,
             )
-            raise typer.Exit(1)
+            raise typer.Exit(1) from e
 
     # Parse assembly report
-    typer.echo(
-        f"Parsing assembly report (old_col={old_col}, new_col={new_col})...", err=True
-    )
+    typer.echo(f"Parsing assembly report (old_col={old_col}, new_col={new_col})...", err=True)
     id_map = parse_assembly_report(report_file, old_col, new_col)
     typer.echo(f"Found {len(id_map)} chromosome mappings", err=True)
 
@@ -472,9 +481,7 @@ def custom(
     output: Annotated[Path, typer.Option("-o", "--output", help="Output FASTA file")],
     id_map: Annotated[
         Path,
-        typer.Option(
-            "-m", "--map", help="ID mapping file (tab-separated: old_id\\tnew_id)"
-        ),
+        typer.Option("-m", "--map", help="ID mapping file (tab-separated: old_id\\tnew_id)"),
     ],
     gff: Annotated[
         Optional[Path], typer.Option("-g", "--gff", help="Input GFF file (optional)")

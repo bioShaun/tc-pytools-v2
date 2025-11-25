@@ -74,7 +74,7 @@ echo
 
 # Step 5: Run type checker
 print_step "Running type checker (mypy)..."
-if uv run mypy gtf --ignore-missing-imports; then
+if uv run mypy genome --ignore-missing-imports; then
     print_success "Type checking passed"
 else
     print_error "Type checking failed"

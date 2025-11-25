@@ -9,11 +9,15 @@ from typing import List
 import pandas as pd
 import typer
 from loguru import logger
+from typing_extensions import Annotated
 
 # Constants
 OUT_COLUMNS = ["chrom", "start", "end"]
 DEFAULT_SPLIT_NUMBER = 400
 STEP_DIVISOR = 10
+
+# Create Typer app instance
+app = typer.Typer(help="Split BED and FAI files into multiple parts by number.")
 
 
 @dataclass
@@ -232,16 +236,32 @@ def split_fai(fai_file: Path, out_dir: Path, split_number: int) -> None:
     logger.info(f"Split genome into {file_index} files in {split_out_dir}")
 
 
-def main(
-    bed_fai: Path, out_path: Path, split_number: int = DEFAULT_SPLIT_NUMBER, is_bed: bool = True
+@app.command()
+def split(
+    bed_fai: Annotated[
+        Path, typer.Argument(..., exists=True, help="Input BED or FAI file to split")
+    ],
+    out_path: Annotated[Path, typer.Argument(..., help="Output directory for split files")],
+    split_number: Annotated[
+        int, typer.Option("--split-number", "-n", help="Number of files to split into")
+    ] = DEFAULT_SPLIT_NUMBER,
+    is_bed: Annotated[
+        bool, typer.Option("--bed/--fai", help="Input file type: BED (default) or FAI")
+    ] = True,
 ) -> None:
-    """Split BED or FAI files into multiple files.
+    """Split BED or FAI files into multiple files by total length.
 
-    Args:
-        bed_fai: Path to input BED or FAI file
-        out_path: Output directory path
-        split_number: Number of files to split into (default: 400)
-        is_bed: True if input is BED file, False if FAI file (default: True)
+    This tool splits genomic files into multiple parts of approximately equal size.
+    For BED files, it splits by total region length. For FAI files, it generates
+    BED regions from the genome sequence lengths.
+
+    Examples:
+
+        # Split a BED file into 400 parts
+        tc-split-bed-fai-by-number input.bed output_dir
+
+        # Split an FAI file into 200 parts
+        tc-split-bed-fai-by-number genome.fai output_dir --fai --split-number 200
     """
     try:
         if is_bed:
@@ -256,5 +276,10 @@ def main(
         raise
 
 
+def main() -> None:
+    """Entry point for console script."""
+    app()
+
+
 if __name__ == "__main__":
-    typer.run(main)
+    main()

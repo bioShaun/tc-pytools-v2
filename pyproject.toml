@@ -41,6 +41,7 @@ Changelog = "https://github.com/bioShaun/tc-pytools-v2/blob/main/CHANGELOG.md"
 [project.scripts]
 tc-rename-genome-id = "genome.rename_genome_id:main"
 tc-liftover-flank-and-site = "liftover.liftover_flank_and_site:main"
+tc-split-bed-fai-by-number = "genome.split_bed_fai_by_number:main"
 
 [build-system]
 requires = ["hatchling"]

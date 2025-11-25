@@ -42,7 +42,7 @@ This is a Python genomic data processing toolkit built with modern Python toolin
 
 1. **CLI Design**: Use Typer for command-line interfaces; maintain consistent help messages
 2. **File Handling**: Use pathlib.Path for all file operations
-3. **External Dependencies**: 
+3. **External Dependencies**:
    - Minimize dependencies; currently using: typer, requests, typing-extensions
    - Add type stubs when needed (e.g., types-requests)
 4. **NCBI Integration**: Assembly reports are downloaded from NCBI FTP using genome name extracted from FASTA filename

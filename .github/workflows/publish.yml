@@ -50,12 +50,13 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment:
+      # 动态选择环境：如果是 Release 事件则为 pypi，否则根据手动输入选择
       name: ${{ github.event_name == 'release' && 'pypi' || github.event.inputs.publish_to }}
     permissions:
-      id-token: write  # For trusted publishing
+      id-token: write
     steps:
-    - uses: actions/checkout@v4
-
+    # 删除了 redundant 的 checkout 步骤
+    
     - name: Download build artifacts
       uses: actions/download-artifact@v4
       with:
@@ -63,13 +64,16 @@ jobs:
         path: dist/
 
     - name: Publish to Test PyPI
-      if: github.event.inputs.publish_to == 'testpypi' || github.event_name == 'workflow_dispatch'
+      # 逻辑修复：仅当手动触发且明确选择 testpypi 时运行
+      if: github.event.inputs.publish_to == 'testpypi'
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        skip-existing: true # 允许重复上传相同版本（测试时很有用）
 
     - name: Publish to PyPI
+      # 逻辑修复：Release 事件 或 手动选择了 pypi 时运行
       if: github.event_name == 'release' || github.event.inputs.publish_to == 'pypi'
       uses: pypa/gh-action-pypi-publish@release/v1
       with:

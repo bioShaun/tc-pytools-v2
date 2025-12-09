@@ -204,6 +204,87 @@ def download_assembly_report(genome_filename: str, output_path: Optional[Path] =
         raise
 
 
+def extract_fasta_ids(fasta_file: Path) -> set:
+    """
+    Extract all sequence IDs from FASTA file.
+
+    Args:
+        fasta_file: Path to FASTA file
+
+    Returns:
+        set: Set of sequence IDs found in FASTA headers
+    """
+    ids = set()
+    with open(fasta_file) as f:
+        for line in f:
+            if line.startswith(">"):
+                # Extract first field as sequence ID
+                parts = line.strip().split()
+                if parts:
+                    seq_id = parts[0].lstrip(">")
+                    ids.add(seq_id)
+    return ids
+
+
+def auto_detect_old_col(report_file: Path, fasta_ids: set, new_id_col: int = 1) -> int:
+    """
+    Auto-detect which column in assembly report matches FASTA IDs.
+
+    Args:
+        report_file: Path to assembly_report.txt file
+        fasta_ids: Set of sequence IDs from FASTA file
+        new_id_col: Column index for new ID (1-indexed, to exclude from detection)
+
+    Returns:
+        int: Best matching column index (1-indexed), or 7 as default if no good match
+    """
+    # Columns to check (excluding the new_id_col)
+    # Typical columns: 1=Sequence-Name, 5=GenBank-Accn, 7=RefSeq-Accn, 9=UCSC-style-name
+    candidate_cols = [1, 5, 7, 9, 10]
+    if new_id_col in candidate_cols:
+        candidate_cols.remove(new_id_col)
+
+    match_scores = {}
+
+    # Read assembly report and count matches for each column
+    with open(report_file) as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            line = line.strip()
+            if not line:
+                continue
+
+            fields = line.split("\t")
+
+            for col in candidate_cols:
+                if col > len(fields):
+                    continue
+
+                col_idx = col - 1
+                value = fields[col_idx].strip()
+
+                # Skip empty or 'na' values
+                if not value or value == "na":
+                    continue
+
+                # Check if this value matches any FASTA ID
+                if value in fasta_ids:
+                    match_scores[col] = match_scores.get(col, 0) + 1
+
+    # Find column with highest match count
+    if match_scores:
+        best_col = max(match_scores, key=match_scores.get)
+        best_score = match_scores[best_col]
+        typer.echo(f"Auto-detected old_col={best_col} with {best_score} matches", err=True)
+        typer.echo(f"Match scores: {match_scores}", err=True)
+        return best_col
+
+    # Default to RefSeq-Accn (column 7) if no matches found
+    typer.echo("Warning: No column auto-detected, using default old_col=7 (RefSeq-Accn)", err=True)
+    return 7
+
+
 def parse_assembly_report(report_file: Path, old_id_col: int = 7, new_id_col: int = 1) -> dict:
     """
     Parse NCBI assembly_report.txt to extract ID mapping.
@@ -388,12 +469,12 @@ def ncbi(
         ),
     ] = None,
     old_col: Annotated[
-        int,
+        Optional[int],
         typer.Option(
             "--old-col",
-            help="Column index for old ID (1-indexed, default: 7 for RefSeq-Accn)",
+            help="Column index for old ID (1-indexed). If not specified, auto-detects by matching FASTA IDs with assembly report columns",
         ),
-    ] = 7,
+    ] = None,
     new_col: Annotated[
         int,
         typer.Option(
@@ -419,10 +500,14 @@ def ncbi(
 
     Alternatively, provide --report to use a local assembly_report.txt file.
 
+    By default, the tool auto-detects which column in the assembly report matches
+    the FASTA IDs. You can override this with --old-col.
+
     Column indices (1-indexed):
       1 = Sequence-Name (e.g., 1, 2, X, MT)
       5 = GenBank-Accn (e.g., CM028482.1)
       7 = RefSeq-Accn (e.g., NC_052532.1)
+      9 = UCSC-style-name
     """
     # Check GFF arguments consistency
     if gff and not output_gff:
@@ -454,6 +539,13 @@ def ncbi(
                 err=True,
             )
             raise typer.Exit(1) from e
+
+    # Auto-detect old_col if not specified
+    if old_col is None:
+        typer.echo("Auto-detecting old_col by matching FASTA IDs...", err=True)
+        fasta_ids = extract_fasta_ids(fasta)
+        typer.echo(f"Found {len(fasta_ids)} sequences in FASTA file", err=True)
+        old_col = auto_detect_old_col(report_file, fasta_ids, new_col)
 
     # Parse assembly report
     typer.echo(f"Parsing assembly report (old_col={old_col}, new_col={new_col})...", err=True)

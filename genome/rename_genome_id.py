@@ -244,7 +244,7 @@ def auto_detect_old_col(report_file: Path, fasta_ids: set, new_id_col: int = 1) 
     if new_id_col in candidate_cols:
         candidate_cols.remove(new_id_col)
 
-    match_scores = {}
+    match_scores: dict[int, int] = {}
 
     # Read assembly report and count matches for each column
     with open(report_file) as f:
@@ -274,7 +274,7 @@ def auto_detect_old_col(report_file: Path, fasta_ids: set, new_id_col: int = 1) 
 
     # Find column with highest match count
     if match_scores:
-        best_col = max(match_scores, key=match_scores.get)
+        best_col = max(match_scores, key=lambda x: match_scores[x])
         best_score = match_scores[best_col]
         typer.echo(f"Auto-detected old_col={best_col} with {best_score} matches", err=True)
         typer.echo(f"Match scores: {match_scores}", err=True)

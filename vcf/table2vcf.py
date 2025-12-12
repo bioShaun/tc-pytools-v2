@@ -75,7 +75,9 @@ def write_vcf_header(
     output.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n")
 
 
-def _collect_contigs(*, input_file: Path, delimiter: str, chunksize: int) -> list[str]:
+def _collect_contigs(
+    *, input_file: Path, delimiter: str, chunksize: int, progress: bool
+) -> list[str]:
     contigs: set[str] = set()
 
     # Read only the chrom column in chunks (case/whitespace-insensitive column match)
@@ -89,11 +91,12 @@ def _collect_contigs(*, input_file: Path, delimiter: str, chunksize: int) -> lis
         usecols=lambda c: str(c).strip().lower() == "chrom",
     )
 
+    disable_progress = (not progress) or (not sys.stderr.isatty())
     for chunk in tqdm(
         chunks,
         desc="Collecting contigs",
         unit="chunk",
-        disable=not sys.stderr.isatty(),
+        disable=disable_progress,
     ):
         if chunk.empty:
             continue
@@ -149,7 +152,12 @@ def parse_and_convert(
         typer.echo(f"Error reading file: {e}", err=True)
         raise typer.Exit(1) from e
 
-    contigs = _collect_contigs(input_file=input_file, delimiter=delimiter, chunksize=chunksize)
+    contigs = _collect_contigs(
+        input_file=input_file,
+        delimiter=delimiter,
+        chunksize=chunksize,
+        progress=progress,
+    )
 
     with open(output_file, "w") as outfile:
         write_vcf_header(outfile, reference=reference, contigs=contigs)
@@ -216,10 +224,11 @@ def parse_and_convert(
                 chunk_data.to_csv(outfile, sep="\t", header=False, index=False)
 
                 total_variants += len(chunk_data)
-                typer.echo(
-                    f"Processed chunk {chunk_num}: {len(chunk_data)} variants",
-                    err=False,
-                )
+                if disable_progress:
+                    typer.echo(
+                        f"Processed chunk {chunk_num}: {len(chunk_data)} variants",
+                        err=False,
+                    )
 
         except Exception as e:
             typer.echo(f"Error reading file: {e}", err=True)

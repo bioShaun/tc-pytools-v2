@@ -9,12 +9,20 @@ Uses pandas with chunked reading to handle large files efficiently.
 import sys
 from collections.abc import Iterable
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Optional, TextIO
 
 import pandas as pd
 import typer
 from tqdm import tqdm
+
+
+class DedupeMode(str, Enum):
+    chunk = "chunk"
+    adjacent = "adjacent"
+    global_ = "global"
+
 
 app = typer.Typer(help="Convert table to VCF format")
 
@@ -114,6 +122,8 @@ def parse_and_convert(
     reference: str = "unknown",
     chunksize: int = 10000,
     progress: bool = True,
+    dedupe: bool = False,
+    dedupe_mode: DedupeMode = DedupeMode.chunk,
 ) -> None:
     """Parse table and convert to VCF using pandas with chunked reading.
 
@@ -163,6 +173,12 @@ def parse_and_convert(
 
         total_variants = 0
         skipped_variants = 0
+        deduped_variants = 0
+
+        last_key: tuple[str, int, str, str] | None = None
+        seen_keys: set[tuple[str, int, str, str]] | None = (
+            set() if dedupe and dedupe_mode == DedupeMode.global_ else None
+        )
 
         # Read file in chunks
         try:
@@ -208,6 +224,50 @@ def parse_and_convert(
                 # Convert POS to integer
                 chunk_data["POS"] = chunk_data["POS"].astype(int)
 
+                if dedupe:
+                    before = len(chunk_data)
+                    if dedupe_mode == DedupeMode.chunk:
+                        chunk_data = chunk_data.drop_duplicates(
+                            subset=["CHROM", "POS", "REF", "ALT"], keep="first"
+                        )
+                    elif dedupe_mode == DedupeMode.adjacent:
+                        keys = list(
+                            zip(
+                                chunk_data["CHROM"].astype(str),
+                                chunk_data["POS"].astype(int),
+                                chunk_data["REF"].astype(str),
+                                chunk_data["ALT"].astype(str),
+                            )
+                        )
+                        if keys:
+                            keep_mask = [True] * len(keys)
+                            prev = last_key
+                            for i, k in enumerate(keys):
+                                if prev is not None and k == prev:
+                                    keep_mask[i] = False
+                                prev = k
+                            last_key = keys[-1]
+                            chunk_data = chunk_data.loc[keep_mask]
+                    else:  # global
+                        assert seen_keys is not None
+                        keys = list(
+                            zip(
+                                chunk_data["CHROM"].astype(str),
+                                chunk_data["POS"].astype(int),
+                                chunk_data["REF"].astype(str),
+                                chunk_data["ALT"].astype(str),
+                            )
+                        )
+                        keep_mask = [True] * len(keys)
+                        for i, k in enumerate(keys):
+                            if k in seen_keys:
+                                keep_mask[i] = False
+                            else:
+                                seen_keys.add(k)
+                        chunk_data = chunk_data.loc[keep_mask]
+
+                    deduped_variants += before - len(chunk_data)
+
                 # Add missing VCF columns
                 chunk_data["ID"] = "."
                 chunk_data["QUAL"] = "."
@@ -234,7 +294,7 @@ def parse_and_convert(
             raise typer.Exit(1) from e
 
         typer.echo(
-            f"Total variants written: {total_variants}, skipped: {skipped_variants}",
+            f"Total variants written: {total_variants}, skipped: {skipped_variants}, deduped: {deduped_variants}",
             err=False,
         )
 
@@ -257,6 +317,16 @@ def main(
         True,
         "--progress/--no-progress",
         help="Show tqdm progress (auto-disabled when not a TTY)",
+    ),
+    dedupe: bool = typer.Option(
+        False,
+        "--dedupe/--no-dedupe",
+        help="Remove duplicate variants (see --dedupe-mode)",
+    ),
+    dedupe_mode: DedupeMode = typer.Option(
+        DedupeMode.chunk,
+        "--dedupe-mode",
+        help="Dedupe strategy: chunk (within-chunk), adjacent (consecutive duplicates), global (all seen; uses RAM)",
     ),
 ) -> None:
     """Convert table with chrom, pos, refer, alt columns to VCF format.
@@ -286,6 +356,8 @@ def main(
         reference=reference,
         chunksize=chunksize,
         progress=progress,
+        dedupe=dedupe,
+        dedupe_mode=dedupe_mode,
     )
 
 

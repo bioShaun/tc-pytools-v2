@@ -67,6 +67,7 @@ uv pip install dist/tc_pytools-1.1.0-py3-none-any.whl
 | 工具名称 | 功能描述 | 主要用途 | 文档链接 |
 |---------|---------|---------|---------|
 | `tc-rename-genome-id` | 重命名基因组染色体 ID | 支持 NGDC 基因组（自动提取 OriSeqID）和自定义映射两种模式，可同时处理 FASTA 和 GFF 文件 | [详细文档](genome/docs/rename-genome-id.md) |
+| `tc-table2vcf` | 表格转换为 VCF 格式 | 将包含 chrom、pos、refer、alt 四列的表格文件转换为标准 VCF 格式文件 | - |
 
 > 💡 每个工具都有详细的使用文档，请点击文档链接查看具体用法和示例。
 

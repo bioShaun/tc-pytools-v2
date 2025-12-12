@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `tc-table2vcf` tool for converting simple table format to VCF format
+- Support for customizable column mapping (--chrom-col, --pos-col, --ref-col, --alt-col)
+- Support for different delimiters (tab, comma, etc.)
+- Optional header skipping functionality
+- Automatic VCF header generation with metadata
+
 ## [1.1.0] - 2024-11-24
 
 ### Added

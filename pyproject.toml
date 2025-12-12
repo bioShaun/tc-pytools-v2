@@ -4,13 +4,9 @@ version = "1.1.4"
 description = "Toolkit for processing genomic data files"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {text = "MIT"}
-authors = [
-    {name = "lx Gui", email = "ricekent@163.com"}
-]
-maintainers = [
-    {name = "lx Gui", email = "ricekent@163.com"}
-]
+license = { text = "MIT" }
+authors = [{ name = "lx Gui", email = "ricekent@163.com" }]
+maintainers = [{ name = "lx Gui", email = "ricekent@163.com" }]
 keywords = ["genomics", "bioinformatics", "FASTA", "GFF", "NGDC", "NCBI"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -40,13 +36,14 @@ Changelog = "https://github.com/bioShaun/tc-pytools-v2/blob/main/CHANGELOG.md"
 [project.scripts]
 tc-rename-genome-id = "genome.rename_genome_id:main"
 tc-liftover-flank-and-site = "liftover.liftover_flank_and_site:main"
+tc-table2vcf = "vcf.table2vcf:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["genome", "liftover"]
+packages = ["genome", "liftover", "vcf"]
 
 [tool.uv]
 dev-dependencies = [
@@ -60,7 +57,7 @@ dev-dependencies = [
 index-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 
 [tool.pytest.ini_options]
-testpaths = ["genome/tests", "liftover/tests"]
+testpaths = ["genome/tests", "liftover/tests", "vcf/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -68,12 +65,13 @@ addopts = [
     "-v",
     "--cov=genome",
     "--cov=liftover",
+    "--cov=vcf",
     "--cov-report=term-missing",
     "--cov-report=html",
 ]
 
 [tool.coverage.run]
-source = ["genome", "liftover"]
+source = ["genome", "liftover", "vcf"]
 omit = ["*/tests/*", "*/test_*.py"]
 
 [tool.coverage.report]

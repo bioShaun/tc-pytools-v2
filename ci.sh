@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 # Local CI script for tc-pytools
 # This script runs all checks that would be run in CI
 
@@ -17,17 +17,17 @@ NC='\033[0m' # No Color
 
 # Function to print step
 print_step() {
-    echo -e "${BLUE}==>${NC} $1"
+    printf "%b\n" "${BLUE}==>${NC} $1"
 }
 
 # Function to print success
 print_success() {
-    echo -e "${GREEN}✓${NC} $1"
+    printf "%b\n" "${GREEN}✓${NC} $1"
 }
 
 # Function to print error
 print_error() {
-    echo -e "${RED}✗${NC} $1"
+    printf "%b\n" "${RED}✗${NC} $1"
 }
 
 # Track if any step fails
@@ -35,7 +35,7 @@ FAILED=0
 
 # Step 1: Check if uv is installed
 print_step "Checking uv installation..."
-if ! command -v uv &> /dev/null; then
+if ! command -v uv >/dev/null 2>&1; then
     print_error "uv is not installed. Please install it first."
     exit 1
 fi
@@ -94,7 +94,7 @@ echo
 
 # Step 7: Run tests with coverage
 print_step "Running tests with coverage..."
-if uv run pytest --cov=genome --cov=liftover --cov-report=term-missing --cov-report=html; then
+if uv run pytest --cov=genome --cov=liftover --cov=vcf --cov-report=term-missing --cov-report=html; then
     print_success "Coverage report generated"
     echo "    HTML report: htmlcov/index.html"
 else

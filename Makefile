@@ -13,7 +13,7 @@ test:  ## Run tests
 	uv run pytest -v
 
 test-cov:  ## Run tests with coverage
-	uv run pytest --cov=genome --cov-report=term-missing --cov-report=html
+	uv run pytest --cov=genome --cov=liftover --cov-report=term-missing --cov-report=html
 
 lint:  ## Run linter
 	uv run ruff check .
@@ -28,7 +28,7 @@ format-check:  ## Check code formatting
 	uv run ruff format --check .
 
 type-check:  ## Run type checker
-	uv run mypy genome --ignore-missing-imports
+	uv run mypy genome liftover --ignore-missing-imports
 
 ci:  ## Run local CI checks
 	./ci.sh
@@ -77,7 +77,8 @@ publish-check:  ## Check package before publishing
 version:  ## Show current version
 	@echo "Current version:"
 	@grep '^version = ' pyproject.toml
-	@grep '^__version__ = ' genome/__init__.py
+	@grep '^__version__ = ' genome/__init__.py || echo "genome/__init__.py: version not found"
+	@grep '^__version__ = ' liftover/__init__.py || echo "liftover/__init__.py: version not found"
 
 release:  ## Full release process (build + check + publish to Test PyPI)
 	@echo "Starting release process..."

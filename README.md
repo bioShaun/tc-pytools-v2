@@ -26,7 +26,7 @@ pip install uv
 
 ```bash
 # 进入项目目录
-cd tc-pytools-v1.1
+cd tc-pytools-v2
 
 # 同步依赖并安装包（可编辑模式）
 uv sync
@@ -39,7 +39,7 @@ uv run rename-ngdc-genome-id --help
 
 ```bash
 # 进入项目目录
-cd tc-pytools-v1.1
+cd tc-pytools-v2
 
 # 使用 uv pip 安装到当前 Python 环境
 uv pip install -e .

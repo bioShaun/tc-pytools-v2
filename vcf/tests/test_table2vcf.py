@@ -42,8 +42,9 @@ def test_header_normalization_case_whitespace(tmp_path: Path) -> None:
 
     lines = _read_lines(output_path)
     assert lines[0].startswith("##fileformat=VCFv4.2")
-    assert lines[5].startswith("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO")
-    assert lines[6].split("\t")[:5] == ["chr1", "1", ".", "A", "T"]
+    assert "##contig=<ID=chr1>" in lines
+    assert lines[-2].startswith("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO")
+    assert lines[-1].split("\t")[:5] == ["chr1", "1", ".", "A", "T"]
 
 
 def test_convert_skips_invalid_pos_and_writes_variants(tmp_path: Path) -> None:
@@ -59,11 +60,17 @@ def test_convert_skips_invalid_pos_and_writes_variants(tmp_path: Path) -> None:
 
     lines = _read_lines(output_path)
 
-    # 6 header lines + 2 variant lines (invalid POS dropped)
-    assert len(lines) == 8
+    assert "##contig=<ID=chr1>" in lines
+    assert "##contig=<ID=chr2>" in lines
 
-    variant1 = lines[6].split("\t")
-    variant2 = lines[7].split("\t")
+    header_idx = lines.index("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO")
+    variants = lines[header_idx + 1 :]
+
+    # invalid POS dropped
+    assert len(variants) == 2
+
+    variant1 = variants[0].split("\t")
+    variant2 = variants[1].split("\t")
 
     assert variant1 == ["chr1", "1", ".", "A", "T", ".", ".", "."]
     assert variant2 == ["chr2", "2", ".", "G", "A", ".", ".", "."]
@@ -81,7 +88,28 @@ def test_chunksize_one_processes_multiple_chunks(tmp_path: Path) -> None:
     parse_and_convert(input_file=input_path, output_file=output_path, chunksize=1)
 
     lines = _read_lines(output_path)
-    assert len(lines) == 9  # 6 header + 3 variants
-    assert lines[6].split("\t")[:5] == ["chr1", "1", ".", "A", "T"]
-    assert lines[7].split("\t")[:5] == ["chr1", "2", ".", "C", "G"]
-    assert lines[8].split("\t")[:5] == ["chr2", "3", ".", "G", "A"]
+    assert "##contig=<ID=chr1>" in lines
+    assert "##contig=<ID=chr2>" in lines
+
+    header_idx = lines.index("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO")
+    variants = lines[header_idx + 1 :]
+
+    assert len(variants) == 3
+    assert variants[0].split("\t")[:5] == ["chr1", "1", ".", "A", "T"]
+    assert variants[1].split("\t")[:5] == ["chr1", "2", ".", "C", "G"]
+    assert variants[2].split("\t")[:5] == ["chr2", "3", ".", "G", "A"]
+
+
+def test_contig_header_includes_nonstandard_ids(tmp_path: Path) -> None:
+    input_path = tmp_path / "in.tsv"
+    output_path = tmp_path / "out.vcf"
+
+    _write_text(
+        input_path,
+        "chrom\tpos\trefer\talt\n1A\t10\tA\tT\n",
+    )
+
+    parse_and_convert(input_file=input_path, output_file=output_path, chunksize=1)
+
+    lines = _read_lines(output_path)
+    assert "##contig=<ID=1A>" in lines

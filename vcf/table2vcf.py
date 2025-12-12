@@ -6,12 +6,15 @@ The input table should contain at least four columns: chrom, pos, refer, alt.
 Uses pandas with chunked reading to handle large files efficiently.
 """
 
+import sys
+from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, TextIO
 
 import pandas as pd
 import typer
+from tqdm import tqdm
 
 app = typer.Typer(help="Convert table to VCF format")
 
@@ -50,6 +53,7 @@ def write_vcf_header(
     output: TextIO,
     reference: str = "unknown",
     source: str = "table2vcf",
+    contigs: Iterable[str] | None = None,
 ) -> None:
     """Write VCF header.
 
@@ -63,8 +67,42 @@ def write_vcf_header(
     output.write(f"##fileDate={today}\n")
     output.write(f"##source={source}\n")
     output.write(f"##reference={reference}\n")
+    if contigs is not None:
+        for contig in contigs:
+            if contig:
+                output.write(f"##contig=<ID={contig}>\n")
     output.write('##INFO=<ID=.,Number=0,Type=Flag,Description="No INFO field">\n')
     output.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n")
+
+
+def _collect_contigs(*, input_file: Path, delimiter: str, chunksize: int) -> list[str]:
+    contigs: set[str] = set()
+
+    # Read only the chrom column in chunks (case/whitespace-insensitive column match)
+    chunks = pd.read_csv(
+        input_file,
+        sep=delimiter,
+        header=0,
+        chunksize=chunksize,
+        dtype=str,
+        keep_default_na=False,
+        usecols=lambda c: str(c).strip().lower() == "chrom",
+    )
+
+    for chunk in tqdm(
+        chunks,
+        desc="Collecting contigs",
+        unit="chunk",
+        disable=not sys.stderr.isatty(),
+    ):
+        if chunk.empty:
+            continue
+        chrom_series = chunk.iloc[:, 0].astype(str).str.strip()
+        for value in chrom_series:
+            if value:
+                contigs.add(value)
+
+    return sorted(contigs)
 
 
 def parse_and_convert(
@@ -73,6 +111,7 @@ def parse_and_convert(
     delimiter: str = "\t",
     reference: str = "unknown",
     chunksize: int = 10000,
+    progress: bool = True,
 ) -> None:
     """Parse table and convert to VCF using pandas with chunked reading.
 
@@ -110,8 +149,10 @@ def parse_and_convert(
         typer.echo(f"Error reading file: {e}", err=True)
         raise typer.Exit(1) from e
 
+    contigs = _collect_contigs(input_file=input_file, delimiter=delimiter, chunksize=chunksize)
+
     with open(output_file, "w") as outfile:
-        write_vcf_header(outfile, reference=reference)
+        write_vcf_header(outfile, reference=reference, contigs=contigs)
 
         total_variants = 0
         skipped_variants = 0
@@ -127,7 +168,11 @@ def parse_and_convert(
                 keep_default_na=False,
             )
 
-            for chunk_num, chunk in enumerate(chunks, 1):
+            disable_progress = (not progress) or (not sys.stderr.isatty())
+            for chunk_num, chunk in enumerate(
+                tqdm(chunks, desc="Converting", unit="chunk", disable=disable_progress),
+                1,
+            ):
                 # Normalize column names
                 chunk.columns = _normalize_columns(chunk.columns)
 
@@ -200,6 +245,11 @@ def main(
     chunksize: int = typer.Option(
         10000, "--chunksize", "-c", help="Number of rows to read at a time"
     ),
+    progress: bool = typer.Option(
+        True,
+        "--progress/--no-progress",
+        help="Show tqdm progress (auto-disabled when not a TTY)",
+    ),
 ) -> None:
     """Convert table with chrom, pos, refer, alt columns to VCF format.
 
@@ -227,6 +277,7 @@ def main(
         delimiter=delimiter,
         reference=reference,
         chunksize=chunksize,
+        progress=progress,
     )
 
 

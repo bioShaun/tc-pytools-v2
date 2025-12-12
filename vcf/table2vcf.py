@@ -71,7 +71,6 @@ def write_vcf_header(
         for contig in contigs:
             if contig:
                 output.write(f"##contig=<ID={contig}>\n")
-    output.write('##INFO=<ID=.,Number=0,Type=Flag,Description="No INFO field">\n')
     output.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n")
 
 

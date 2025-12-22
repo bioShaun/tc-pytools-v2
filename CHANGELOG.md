@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.5] - 2025-12-22
+
 ### Added
 - `tc-table2vcf` tool for converting simple table format to VCF format
 - Support for customizable column mapping (--chrom-col, --pos-col, --ref-col, --alt-col)

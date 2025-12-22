@@ -1,6 +1,6 @@
 [project]
 name = "tc-pytools"
-version = "1.1.4"
+version = "1.1.5"
 description = "Toolkit for processing genomic data files"
 readme = "README.md"
 requires-python = ">=3.8"
